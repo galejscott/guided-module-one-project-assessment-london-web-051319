@@ -1,6 +1,5 @@
 require_relative '../config/environment'
-require_relative '../lib/users'
-require_relative '../lib/get_user'
 
 
+binding.pry
 puts "hello world"

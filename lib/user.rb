@@ -10,36 +10,45 @@ class User < ActiveRecord::Base
     hello = Song.find_by(title: "Hello")
 
     #Create
-    def create_playlist(name, username)
-       Playlist.create(name, self.username)
+    def create_playlist(name, user_id)
+       Playlist.create(name: name, user_id: self.id)
     end
 
     #Read
-    def find_playlist_by_username(username)
-        user = self.find_by(username: username)
-        user.playlists
+    def find_playlist(name: name)
+        Playlist.select(name: name)
     end
 
-    def find_playlist(playlist)
-        Playlist.find_by(name: playlist)
-binding.pry
+    def own_playlists
+        self.playlists.map {|p| p.name}
     end
+
+    
+
+
+    def select_own_playlist(playlist_name)
+        self.playlists.find {|p| p.name == playlist_name}
+    end
+
 
 
     #Update
-    def self.add_song_to_playlist(playlist, title)
-        found_song = Song.find_by(title: title)
-        found_playlist = Playlist.find_by(name: playlist)
-        new_entry = Entry.create(playlist_id: found_playlist.id, song_id: found_song.id)
-        found_playlist << new_entry
+    def add_song_to_playlist(playlist_name, song)
+        # found_song = Song.find_by(title: song)
+        # found_playlist = Playlist.find_by(name: playlist)
+        # new_entry = Entry.create(playlist_id: found_playlist.id, song_id: found_song.id)
+        playlist = select_own_playlist(playlist_name)
+        Entry.create(playlist_id: playlist.id, song_id: song.id)
     end
 
     #Delete
-    def self.remove_song_from_playlist(playlist, title)
-        found_playlist = Playlist.find_by(name: playlist)
-        found_song = Song.find_by(title: title)
-        found_playlist.delete_if {|song| song.id == found_song.id}
+    def remove_song_from_playlist(playlist_name, song)
+        playlist = select_own_playlist(playlist_name)
+        found_entry = Entry.find_by(playlist_id: playlist.id, song_id: song.id)
+        found_entry.destroy
     end
+
+    
     
 
     def length_playlist

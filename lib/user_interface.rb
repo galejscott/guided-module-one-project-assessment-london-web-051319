@@ -1,4 +1,4 @@
-class GetUser
+class UserInterface
 
     def get_user
         puts "Welcome to Playlist-me"
@@ -20,7 +20,7 @@ class GetUser
     end
 
     def see_other_playlist
-
+        
     end
 end
 

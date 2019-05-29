@@ -19,5 +19,8 @@ class Song < ActiveRecord::Base
     self.playlists
   end
 
+  def find_song(title)
+    Song.find_by(title: title)
+  end
 
 end
