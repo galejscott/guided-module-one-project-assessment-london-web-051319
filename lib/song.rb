@@ -23,4 +23,9 @@ class Song < ActiveRecord::Base
     Song.find_by(title: title)
   end
 
+  def songs_by_artist(artist)
+    Song.all.map {|s| s.artist}
+  end
+  
+
 end

@@ -10,12 +10,12 @@ class User < ActiveRecord::Base
     hello = Song.find_by(title: "Hello")
 
     #Create
-    def create_playlist(name: name)
+    def create_playlist(name:)
        Playlist.create(name: name, user_id: self.id)
     end
 
     #Read
-    def find_playlist(name: name)
+    def find_playlist(name:)
         Playlist.select(name: name)
     end
 
@@ -28,7 +28,7 @@ class User < ActiveRecord::Base
     end
 
 
-    def select_own_playlist(name: name)
+    def select_own_playlist(name:)
         self.playlists.find_by(name: name)
     end
 
@@ -50,7 +50,7 @@ class User < ActiveRecord::Base
         found_entry.destroy
     end
 
-    def delete_playlist(name: name)
+    def delete_playlist(name:)
         playlist = select_own_playlist(name: name)
         Entry.where(playlist_id: playlist.id).destroy_all
         Playlist.where(id: playlist.id).destroy_all

@@ -12,4 +12,12 @@ class Artist < ActiveRecord::Base
         self.genres.size
     end
 
+    def artist_list
+        Artist.all.map {|a| a.name}
+    end
+
+    def artist_songs
+        self.songs
+    end
+
 end
