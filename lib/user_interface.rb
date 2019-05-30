@@ -7,27 +7,34 @@ class UserInterface
     def welcome
         puts "Welcome to Playlist-me"
         
-        option = $prompt.select("Login or Register", ["Login", "Register"])
+        option = $prompt.select("Login or Register", ["Login", "Register", "Exit"])
             if option == "Login"
                 @login = $prompt.collect do
                     key(:username).ask("Username").downcase
                     #match username to database username
                 end
-                if User.exists?(username: @login[:username].downcase)
-                    $cliuser = User.find_by(username: @login[:username].downcase)
+                if User.exists?(username: @login[:username])
+                    $cliuser = User.find_by(username: @login[:username])
                     puts "Success. Welcome"
                     main_menu
                 else 
-                    puts "Please enter a valid username"
+                    $prompt.error("Please enter a valid username")
                     welcome
                 end
-            else option == "Register"
+            elsif option == "Register"
                 @new_username = $prompt.collect do
                     key(:username).ask("Username").downcase
                     #create new username
                 end
+                if  User.exists?(username: @new_username[:username])
+                    $prompt.error("Username already taken, please select another")
+                    welcome
+                else
                     $cliuser = User.create(username: @new_username[:username])
-                main_menu
+                    main_menu
+                end
+            else option == "Exit"
+                exit
             end
     end
 
@@ -113,6 +120,7 @@ class UserInterface
             remove = $prompt.select("remove #{@@remove_song.title} from #{$plist.name}?", ["Yes", "No"]) 
                 if remove == "Yes"
                     Entry.find_by(playlist_id: $plist.id, song_id: @@remove_song.id).destroy
+                    
                     $prompt.say("Done.")
                     playlist_menu 
                 else remove == "No"
