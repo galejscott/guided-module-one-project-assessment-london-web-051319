@@ -1,7 +1,10 @@
 require_relative '../config/environment'
 
 
-
 puts "hello world"
-welcome
+
+cli = UserInterface.new
+# cli.welcome
+# cli.main_menu
+cli.welcome
 

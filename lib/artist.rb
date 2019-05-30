@@ -17,7 +17,7 @@ class Artist < ActiveRecord::Base
     end
 
     def artist_songs
-        self.songs
+        self.songs.map {|a| a.title}
     end
 
 end

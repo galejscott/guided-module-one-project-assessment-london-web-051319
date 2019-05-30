@@ -1,26 +1,38 @@
 $prompt = TTY::Prompt.new
 
+class UserInterface
+
+    $cliuser = nil
 
     def welcome
         puts "Welcome to Playlist-me"
         
-        option = $prompt.select("Login or Register new user", ["Login", "Register new user"])
+        option = $prompt.select("Login or Register", ["Login", "Register"])
             if option == "Login"
-                login = $prompt.collect do
-                    key(:username).ask("Username")
+                @login = $prompt.collect do
+                    key(:username).ask("Username").downcase
                     #match username to database username
-                    main_menu
                 end
-            else option == "Register new user"
-                username = $prompt.collect do
-                    key(:username).ask("Username")
+                if User.exists?(username: @login[:username].downcase)
+                    $cliuser = User.find_by(username: @login[:username].downcase)
+                    puts "Success. Welcome"
+                    main_menu
+                else 
+                    puts "Please enter a valid username"
+                    welcome
+                end
+            else option == "Register"
+                @new_username = $prompt.collect do
+                    key(:username).ask("Username").downcase
                     #create new username
-                    User.create(username: username)
-                    main_menu
                 end
+                    $cliuser = User.create(username: @new_username[:username])
+                main_menu
             end
-        
     end
+
+   
+
 
     def main_menu
         option = $prompt.select("Main Menu", ["Create Playlist", "Select Existing Playlist", "Select Another Users Playlist", "Log out"])
@@ -36,13 +48,15 @@ $prompt = TTY::Prompt.new
     end
 
     def playlist_menu
-        playlist_menu = $prompt.select("Playlist Menu", ["Add Song", "Remove Song", "Delete Playlist", "Main Menu"])
+        playlist_menu = $prompt.select("Playlist Menu", ["Add Song", "Remove Song", "Delete Playlist", "View Playlist", "Main Menu"])
             if playlist_menu == "Add Song"
                 add_song
             elsif playlist_menu == "Remove Song"
                 remove_song
             elsif playlist_menu == "Delete Playlist"
-                delete_playlist
+                del_playlist
+            elsif playlist_menu == "View Playlist"
+                view_playlist
             else playlist_menu == "Main Menu"
                 main_menu
             end
@@ -53,78 +67,112 @@ $prompt = TTY::Prompt.new
             key(:name).ask("Please enter a Playlist name")
             #create playlist, move to add song
             end 
-            user.Playlist.create(name: name, user_id: user.id)
+            plist_name = name[:name]
+            Playlist.create(name: plist_name, user_id: $cliuser.id)
+            $plist = Playlist.find_by(name: plist_name)
+        
         add_song
     end
 
     def add_song
         $prompt.say("Lets add a song")
         artist_list = (Artist.all.map {|a| a.name})
+        
         artist = $prompt.select("Please select an Artist",[artist_list, "Playlist Menu"])
             if artist == "Playlist Menu"
                 playlist_menu
-            else artist == artist_list
-                #select artist
+            else
+                selected_artist = Artist.find_by(name: artist)
             end
-        song_list = () #song list by artist selected
+        song_list = selected_artist.songs.map {|a| a.title}
         song = $prompt.select("Please select a Song", [song_list, "Playlist Menu"])
             if song == "Playlist Menu"
                 playlist_menu
-            else song == "#song"
-                #select song
+            else 
+                @@selected_song = Song.find_by(title: song)
+            add = $prompt.select("add #{@@selected_song.title} to #{$plist.name}?", ["Yes", "No"]) 
+            
+                if add == "Yes"
+                    Entry.create(playlist_id: $plist.id, song_id: @@selected_song.id)
+                    $prompt.say("Success. Let's add another")
+                    add_song 
+                else add == "No"
+                    playlist_menu
+                end
             end
-        add = $prompt.yes?("add song?") do |q|
-            q.suffix "Yes/No"
-            if add == "Yes"
-                #add song
-                $prompt.say("Success. Let's add another")
-                add_song 
-            else add == "No"
-                add_song
-            end
-        end
+        
     end
 
     def remove_song
-        playlist_songs = () #list of entries within playlist
-        remove == $prompt.select("Select a Song", [playlist_songs, "Playlist Menu"])
-            if remove == "Playlist Menu"
+        playlist_songs = ($plist.songs.map{|s| s.title}) #list of entries within playlist
+        song = $prompt.select("Select a Song", [playlist_songs, "Playlist Menu"])
+            if song == "Playlist Menu"
                 playlist_menu
-            else remove == "#song"
-                #remove song from playlist
+            else 
+                @@remove_song = Song.find_by(title: song)
+            remove = $prompt.select("remove #{@@remove_song.title} from #{$plist.name}?", ["Yes", "No"]) 
+                if remove == "Yes"
+                    Entry.find_by(playlist_id: $plist.id, song_id: @@remove_song.id).destroy
+                    $prompt.say("Done.")
+                    playlist_menu 
+                else remove == "No"
+                    playlist_menu
+                end
             end
+        
     end
 
-    def delete_playlist
-        your_playlists = (username.playlists.map {|p| p.name}) #list of your playlists
-        delete == $prompt.select("Select your playlist", [your_playlists, "Playlist Menu"])
-            if delete == "Playlist Menu"
+    def del_playlist
+        your_plists = ($cliuser.playlists.map {|p| p.name})
+        playlist = $prompt.select("Select your playlist", [your_plists, "Playlist Menu"])
+            if playlist == "Playlist Menu"
                 playlist_menu
-            else delete == "#playlist"
-                #delete playlist
+            else 
+                $plist_name = Playlist.find_by(name: playlist)
+            delete = $prompt.select("Delete #{$plist.name}?", ["Yes", "No"]) 
+                if delete == "Yes"
+                    Entry.all.where(playlist_id: $plist.id).destroy_all
+                    Playlist.all.where(id: $plist.id).destroy_all
+                    $prompt.say("Done.")
+                    main_menu 
+                else delete == "No"
+                    playlist_menu
+                end
             end
     end
 
     def select_existing_playlist
-        your_playlists = (username.playlists.map {|p| p.name}) #list of your playlists
-        your_playlist == $prompt.select("Select your playlist", [your_playlists, "Main Menu"])
-            if your_playlist == "Playlist Menu"
+        
+        your_plists = ($cliuser.playlists.map {|p| p.name})#list of your playlists
+        playlist = $prompt.select("Select your playlist", [your_plists, "Main Menu"])
+            if playlist == "Playlist Menu"
                 main_menu
-            else your_playlist == "#playlist"
-                #playlist
+            else 
+                $plist = Playlist.find_by(name: playlist)
+                playlist_menu
             end
     end
 
     def other_playlists
-        other_playlists = (username.Playlist.all.select {|p| p.user_id != self.id}) #other playlists
-        other_playlist == $prompt.select("Select a playlist", [other_playlists, "Main Menu"])
+        other = Playlist.all.select {|p| p.user_id != $cliuser.id}
+        other_playlists = other.map {|p| p.name} #other playlists
+        other_playlist = $prompt.select("Select a playlist", [other_playlists, "Main Menu"])
+        
             if other_playlist == "Playlist Menu"
                 main_menu
-            else other_playlist == "#playlist"
-                #view playlist
+            else 
+                $plist = Playlist.find_by(name: other_playlist)
+                view_playlist
             end
     end
 
-
-
-    
+    def view_playlist
+        playlist = $plist.songs
+        show = playlist.map{|s| s.title}
+        puts show
+        back = $prompt.select("back?", ["Playlist Menu"])
+        if back == "Playlist Menu"
+        playlist_menu
+        end
+    end
+end

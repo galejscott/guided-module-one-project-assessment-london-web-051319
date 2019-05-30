@@ -24,8 +24,8 @@ class Song < ActiveRecord::Base
   end
 
   def songs_by_artist(artist)
-    Song.all.map {|s| s.artist}
+    Song.all.map {|s| s.artist_id == artist.id}
   end
-  
+
 
 end

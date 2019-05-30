@@ -7,4 +7,6 @@ class Playlist < ActiveRecord::Base
         Playlist.find_by(username: username)
     end
 
+    
+
 end
