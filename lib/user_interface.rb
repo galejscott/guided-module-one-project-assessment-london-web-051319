@@ -65,6 +65,7 @@ class UserInterface
     end
 
     def playlist_menu
+        
         playlist_menu = $prompt.select("Playlist Menu", ["Add Song", "Remove Song", "Delete Playlist", "View Playlist", "Main Menu"])
             if playlist_menu == "Add Song"
                 add_song
@@ -130,7 +131,7 @@ class UserInterface
             remove = $prompt.select("remove #{@@remove_song.title} from #{$plist.name}?", ["Yes", "No"]) 
                 if remove == "Yes"
                     Entry.find_by(playlist_id: $plist.id, song_id: @@remove_song.id).destroy
-                    Entry.all.reload
+                    $plist = Playlist.find_by(name: $plist.name)
                     $prompt.say("Done.")
                     playlist_menu 
                 else remove == "No"
@@ -146,7 +147,7 @@ class UserInterface
             if playlist == "Playlist Menu"
                 playlist_menu
             else 
-                $plist_name = Playlist.find_by(name: playlist)
+                $plist = Playlist.find_by(name: playlist)
             delete = $prompt.select("Delete #{$plist.name}?", ["Yes", "No"]) 
                 if delete == "Yes"
                     Entry.all.where(playlist_id: $plist.id).destroy_all
@@ -162,7 +163,6 @@ class UserInterface
     end
 
     def select_existing_playlist
-        
         your_plists = ($cliuser.playlists.map {|p| p.name})#list of your playlists
         playlist = $prompt.select("Select your playlist", [your_plists, "Main Menu"])
             if playlist == "Main Menu"

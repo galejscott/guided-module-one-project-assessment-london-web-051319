@@ -3,9 +3,6 @@ class User < ActiveRecord::Base
     has_many :entries, through: :playlists
     has_many :songs, through: :entries
 
-    # sarah = User.find_by(username: "sarah")
-    # walk_to_work = Playlist.find_by(name: "Walk to Work")
-    # hello = Song.find_by(title: "Hello")
 
     #Create
     def create_playlist(name:)
