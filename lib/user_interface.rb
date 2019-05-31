@@ -10,24 +10,34 @@ class UserInterface
         option = $prompt.select("Login or Register", ["Login", "Register", "Exit"])
             if option == "Login"
                 @login = $prompt.collect do
-                    key(:username).ask("Username").downcase
+                    key(:username).ask("Username") do |u|
+                    u.modify :down
                     #match username to database username
+                    end
                 end
                 if User.exists?(username: @login[:username])
                     $cliuser = User.find_by(username: @login[:username])
                     puts "Success. Welcome"
                     main_menu
+                elsif @login[:username] == nil
+                    $prompt.error("Please enter a valid username")
+                    welcome
                 else 
                     $prompt.error("Please enter a valid username")
                     welcome
                 end
             elsif option == "Register"
                 @new_username = $prompt.collect do
-                    key(:username).ask("Username").downcase
+                    key(:username).ask("Username") do |u|
+                    u.modify :down
+                    end
                     #create new username
                 end
                 if  User.exists?(username: @new_username[:username])
                     $prompt.error("Username already taken, please select another")
+                    welcome
+                elsif @new_username[:username] == nil
+                    $prompt.error("Please enter a valid username")
                     welcome
                 else
                     $cliuser = User.create(username: @new_username[:username])
@@ -120,7 +130,7 @@ class UserInterface
             remove = $prompt.select("remove #{@@remove_song.title} from #{$plist.name}?", ["Yes", "No"]) 
                 if remove == "Yes"
                     Entry.find_by(playlist_id: $plist.id, song_id: @@remove_song.id).destroy
-                    
+                    Entry.all.reload
                     $prompt.say("Done.")
                     playlist_menu 
                 else remove == "No"
@@ -141,6 +151,8 @@ class UserInterface
                 if delete == "Yes"
                     Entry.all.where(playlist_id: $plist.id).destroy_all
                     Playlist.all.where(id: $plist.id).destroy_all
+                    Entry.all.reload
+                    Playlist.all.reload
                     $prompt.say("Done.")
                     main_menu 
                 else delete == "No"
@@ -153,7 +165,7 @@ class UserInterface
         
         your_plists = ($cliuser.playlists.map {|p| p.name})#list of your playlists
         playlist = $prompt.select("Select your playlist", [your_plists, "Main Menu"])
-            if playlist == "Playlist Menu"
+            if playlist == "Main Menu"
                 main_menu
             else 
                 $plist = Playlist.find_by(name: playlist)
@@ -166,7 +178,7 @@ class UserInterface
         other_playlists = other.map {|p| p.name} #other playlists
         other_playlist = $prompt.select("Select a playlist", [other_playlists, "Main Menu"])
         
-            if other_playlist == "Playlist Menu"
+            if other_playlist == "Main Menu"
                 main_menu
             else 
                 $plist = Playlist.find_by(name: other_playlist)
@@ -178,9 +190,9 @@ class UserInterface
         playlist = $plist.songs
         show = playlist.map{|s| s.title}
         puts show
-        back = $prompt.select("back?", ["Playlist Menu"])
-        if back == "Playlist Menu"
-        playlist_menu
+        back = $prompt.select("Main Menu", ["Main Menu"])
+        if back == "Main Menu"
+        main_menu
         end
     end
 end

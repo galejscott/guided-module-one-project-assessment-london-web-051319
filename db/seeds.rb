@@ -1,8 +1,8 @@
 
 #user
-sarah = User.create(username: "sarah")
-joe = User.create(username: "joe")
-hoots = User.create(username: "hoots")
+sarah = User.create(username: "Sarah")
+joe = User.create(username: "Joe")
+hoots = User.create(username: "Hoots")
 
 #playlist
 massive_tunes = Playlist.create(name: "Massive Tunes", user_id: joe.id)
