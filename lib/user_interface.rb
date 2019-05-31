@@ -85,6 +85,10 @@ class UserInterface
             key(:name).ask("Please enter a Playlist name")
             #create playlist, move to add song
             end 
+            if name[:name] == nil
+                    $prompt.error("Please enter a Playlist name")
+                    create
+            end
             plist_name = name[:name]
             Playlist.create(name: plist_name, user_id: $cliuser.id)
             $plist = Playlist.find_by(name: plist_name)
@@ -112,7 +116,7 @@ class UserInterface
             
                 if add == "Yes"
                     Entry.create(playlist_id: $plist.id, song_id: @@selected_song.id)
-                    $prompt.say("Success. Let's add another")
+                    $prompt.ok("Success. Let's add another")
                     add_song 
                 else add == "No"
                     playlist_menu
@@ -132,7 +136,7 @@ class UserInterface
                 if remove == "Yes"
                     Entry.find_by(playlist_id: $plist.id, song_id: @@remove_song.id).destroy
                     $plist = Playlist.find_by(name: $plist.name)
-                    $prompt.say("Done.")
+                    $prompt.ok("Done.")
                     playlist_menu 
                 else remove == "No"
                     playlist_menu
@@ -154,7 +158,7 @@ class UserInterface
                     Playlist.all.where(id: $plist.id).destroy_all
                     Entry.all.reload
                     Playlist.all.reload
-                    $prompt.say("Done.")
+                    $prompt.ok("Done.")
                     main_menu 
                 else delete == "No"
                     playlist_menu
